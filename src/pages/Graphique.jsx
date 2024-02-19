@@ -1,34 +1,20 @@
-/* eslint-disable no-unused-vars */
-import { Component } from "react";
-import CanvasJSReact from "@canvasjs/react-charts";
+import Progress from "./Progess";
 
-var CanvasJS = CanvasJSReact.CanvasJS;
-var CanvasJSChart = CanvasJSReact.CanvasJSChart;
-class Graphique extends Component {
-  render() {
-    const options = {
-      title: {
-        text: "Basic Column Chart",
-      },
-      data: [
-        {
-          type: "column",
-          dataPoints: [
-            { label: "Laravel", y: 10 },
-            { label: "React", y: 15 },
-            { label: "Django", y: 25 },
-            { label: "PHP", y: 30 },
-            { label: "Python", y: 28 },
-          ],
-        },
-      ],
-    };
-    return (
-      <div className="w-full text-center">
-        <CanvasJSChart options={options} />
+function Graphique() {
+  return (
+    <div className="flex w-full flex-col gap-0  ">
+      <h1 className="text-center z-index  text-black text-4xl justtify-items-center mt-24 max-lg:text-4xl">
+        Resultats des Sondages
+      </h1>
+      <div className="relative w-full">
+        <Progress bgcolor="orange" progress="25" height={30} />
+        <Progress bgcolor="red" progress="55" height={30} />
+        <Progress bgcolor="#685E43" progress="45" height={30} label="Small" />
+        <Progress bgcolor="#D3D3D3" progress="80" height={30} />
+        <Progress bgcolor="#99ccff" progress="39" height={30} />
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export default Graphique;
