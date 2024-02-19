@@ -1,16 +1,37 @@
 /* eslint-disable no-unused-vars */
-import { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import axios from 'axios'; 
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useSelector } from "react-redux";
+import { selectToken } from "../components/features/AuthSlice";
+import { useNavigate } from "react-router-dom"; 
 
 const Forms = () => {
+  const [token, setToken] = useState(useSelector(selectToken));
+  const navigate = useNavigate();
+  
+
   const [formFields, setFormFields] = useState([
     { type: "text", value: "", key: 0 },
   ]);
   const [formTitle, setFormTitle] = useState("");
   const inputRef = useRef(null);
 
+  const [formData, setFormData] = useState({
+    question: "",
+    options: [],
+  });
+
+   useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
+
+ 
   const handleTextareaSubmit = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -37,10 +58,57 @@ const Forms = () => {
     setFormFields(newFields);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", { title: formTitle, fields: formFields });
+
+    if (!token) {
+      navigate("/connexion");
+      return;
+    }
+
+    await submitForm({
+      question: formTitle,
+      options: formFields.map((field) => field.value),
+    });
   };
+
+  const submitForm = async (formData) => {
+    try {
+      const owner = localStorage.getItem("user");
+  
+      if (!owner) {
+        console.error('User not logged in. Unable to create the survey.');
+        return;
+      }
+  
+      formData.owner = owner;
+  
+      const res = await axios.post('https://pulso-backend.onrender.com/api/sondages/', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      console.log('API Response:', res.data);
+      console.log('Owner in API Response:', res.data ? res.data.owner : 'No owner property');
+  
+      if (res.status === 200 || res.status === 201) {
+        console.log('Survey created successfully!');
+        setFormTitle('');
+        setFormFields([{ type: "text", value: "", key: 0 }]);
+        
+        const sondageId = res.data.id; 
+        const lienSondage = `http://localhost:5173/sondages/${sondageId}`;
+        console.log('Lien sondage:', lienSondage);
+      } else {
+        console.error('Unexpected status code:', res.status);
+      }
+    } catch (error) {
+      console.error('Error:', error.response ? error.response.data : error.message);
+    }
+  };
+  
 
   return (
     <div className="flex items-center justify-center h-screen font-sans">
@@ -55,7 +123,8 @@ const Forms = () => {
             placeholder="Titre du formulaire"
             className="w-full p-2 border-none outline-none text-4xl font-bold rounded"
             onKeyDown={handleTextareaSubmit}
-            required
+            value={formTitle}
+            onChange={(e) => setFormTitle(e.target.value)}
           ></textarea>
         </div>
 
@@ -83,11 +152,9 @@ const Forms = () => {
             <input
               ref={inputRef}
               type={field.type}
-              placeholder="Contenu du formulaire"
               value={field.value}
               onChange={(e) => handleFieldChange(index, e)}
-              className="w-full px-2 border-b border-gray-300 font-bold focus:outline-none focus:border-gray-400 rounded"
-              required
+              className="w-full p-2 border-none outline-none rounded"
             />
           </div>
         ))}
