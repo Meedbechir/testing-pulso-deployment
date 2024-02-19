@@ -64,7 +64,9 @@ const Forms = () => {
       toast.warning(
         "Veuillez vous identifier avant de pouvoir créer un sondage"
       );
-      setTimeout(() => {}, 2000);
+      setTimeout(() => {
+        navigate('/connexion')
+      }, 2000);
 
       return;
     }
